@@ -1,5 +1,6 @@
-# Kedro Compose Patterns
+# RPC - Kedro Compose Patterns
 
+Code example notebook: [Notebook Link](examples/patterns_demo.ipynb)
 ## 1. Simple Branching Pattern
 
 One parent pipeline branches into multiple child pipelines with automatic connections.
@@ -18,53 +19,21 @@ graph TD
     style E fill:#17a2b8,color:#ffffff
 ```
 
-## 2. Multi-Level Tree Pattern
+## 2. Merge Pattern
 
-Hierarchical branching structure where each level automatically connects to its parent.
-
-```mermaid
-graph TD
-    A[extract_root] --> B[raw_data]
-
-    B --> C[FE.preprocess]
-    B --> D[ML.prepare_ml]
-
-    C --> E[FE.preprocessed_data]
-    D --> F[ML.ml_ready_data]
-
-    E --> G[FE.Basic.basic_features]
-    E --> H[FE.Advanced.advanced_features]
-
-    F --> I[ML.Linear.linear_model]
-    F --> J[ML.Ensemble.ensemble_model]
-
-    style A fill:#ffc107,color:#000000
-    style B fill:#28a745,color:#ffffff
-    style C fill:#6f42c1,color:#ffffff
-    style D fill:#6f42c1,color:#ffffff
-    style E fill:#28a745,color:#ffffff
-    style F fill:#28a745,color:#ffffff
-    style G fill:#17a2b8,color:#ffffff
-    style H fill:#17a2b8,color:#ffffff
-    style I fill:#17a2b8,color:#ffffff
-    style J fill:#17a2b8,color:#ffffff
-```
-
-## 3. Merge Pattern
-
-Multiple separate pipelines that can be combined, with optional merge functionality.
+Multiple separate pipelines that converge into a single combined result using `.merge()` functionality.
 
 ```mermaid
 graph TD
     A[extract_data] --> D[extracted_data]
     B[process_features] --> E[processed_features]
-    C[train_final_model] --> F[advanced_features]
+    C[advance_features] --> F[advanced_features]
 
-    D --> G[evaluate_final_model]
+    D --> G[merge_3_outputs]
     E --> G
     F --> G
 
-    G --> H[model_metrics]
+    G --> H[combined_all_features]
 
     style A fill:#ffc107,color:#000000
     style B fill:#ffc107,color:#000000
@@ -76,7 +45,7 @@ graph TD
     style H fill:#17a2b8,color:#ffffff
 ```
 
-## 4. Grid Pattern (Cartesian Product)
+## 3. Nested Tree / Cartesian Product
 
 Create all combinations of feature engineering approaches × modeling approaches.
 
@@ -120,23 +89,11 @@ graph TD
 
 ## Pattern Reference Table
 
-| Pattern              | Description                                                         | Code Example                                                                                                                                                                                                                           | Diagram                                        |
-| -------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| **Simple Branching** | One parent branches to multiple children with automatic connections | `parent = ComposablePipeline(data_prep_pipeline)`<br>`parent.add_child("Model1", model1_pipeline)`<br>`parent.add_child("Model2", model2_pipeline)`<br>`parent.add_child("Model3", model3_pipeline)`                                   | [Pattern 1](#1-simple-branching-pattern)       |
-| **Multi-Level Tree** | Hierarchical branching with automatic parent-child connections      | `root = ComposablePipeline(root_pipeline)`<br>`fe_branch = root.add_child("FE", fe_pipeline)`<br>`fe_branch.add_child("Basic", basic_fe_pipeline)`<br>`fe_branch.add_child("Advanced", advanced_fe_pipeline)`                          | [Pattern 2](#2-multi-level-tree-pattern)       |
-| **Merge Pattern**    | Separate pipelines combined with optional merge functionality       | `branch1 = ComposablePipeline(extraction_pipeline)`<br>`branch2 = ComposablePipeline(feature_pipeline)`<br>`# Use .merge() for automatic fan-in`<br>`merged = branch1.merge(combine_func, "final_output")`                             | [Pattern 3](#3-merge-pattern)                  |
-| **Grid Composition** | Cartesian product: FE approaches × Model approaches                 | `for fe_name, fe_pipeline in fe_approaches.items():`<br>`    fe_branch = root.add_child(fe_name, fe_pipeline)`<br>`    for model_name, model_pipeline in models.items():`<br>`        fe_branch.add_child(model_name, model_pipeline)` | [Pattern 4](#4-grid-pattern-cartesian-product) |
-
-### Generated Namespaces Examples
-
-| Pattern          | Generated Namespaces                                                                                                                                                                                                    |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Simple Branching | Root: `extract` → `features`<br>Children: `Model1.linear_predictions`, `Model2.ensemble_predictions`, `Model3.linear_evaluation`                                                                                        |
-| Multi-Level Tree | Root: `extract_root` → `raw_data`<br>Level 1: `FE.preprocessed_data`, `ML.ml_ready_data`<br>Level 2: `FE.Basic.basic_features`, `FE.Advanced.advanced_features`, `ML.Linear.linear_model`, `ML.Ensemble.ensemble_model` |
-| Merge Pattern    | Individual: `extracted_data`, `processed_features`, `advanced_features`<br>Merged: `model_metrics` (fan-in from all inputs)                                                                                             |
-| Grid Composition | Grid: `FE1.Linear.fe1_linear_pred`, `FE1.Ensemble.fe1_ensemble_pred`<br>`FE2.Linear.fe2_linear_pred`, `FE2.Ensemble.fe2_ensemble_pred` (2×2=4 combinations)                                                             |
-
----
+| Pattern                             | Description                                                         | Code Example                                                                                                                                                                                                                           | Diagram                                        |
+| ----------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| **Simple Branching**                | One parent branches to multiple children with automatic connections | `parent = ComposablePipeline(data_prep_pipeline)`<br>`parent.add_child("Model1", model1_pipeline)`<br>`parent.add_child("Model2", model2_pipeline)`<br>`parent.add_child("Model3", model3_pipeline)`                                   | [Pattern 1](#1-simple-branching-pattern)       |
+| **Merge Pattern**                   | Multiple separate pipelines converge using merge functionality      | `branch = ComposablePipeline(pipeline)`<br>`merged = branch.merge(`<br>`    func=combine_features,`<br>`    outputs="combined_all_features")`                                                                                          | [Pattern 2](#2-merge-pattern)                  |
+| **Nested Tree / Cartesian Product** | Cartesian product: FE approaches × Model approaches                 | `for fe_name, fe_pipeline in fe_approaches.items():`<br>`    fe_branch = root.add_child(fe_name, fe_pipeline)`<br>`    for model_name, model_pipeline in models.items():`<br>`        fe_branch.add_child(model_name, model_pipeline)` | [Pattern 3](#3-nested-tree--cartesian-product) |
 
 ## Key Features
 
