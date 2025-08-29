@@ -1,6 +1,17 @@
 # RPC - Kedro Compose Patterns
 
 Code example notebook: [Notebook Link](examples/patterns_demo.ipynb)
+
+## Pattern Reference Table
+
+| Pattern                             | Use case                              | Code Example                                                                                                                                                                                                                           | Diagram                                        |
+| ----------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| **Simple Branching**                | Multiple models share common input    | `parent = ComposablePipeline(data_prep_pipeline)`<br>`parent.add_child("Model1", model1_pipeline)`<br>`parent.add_child("Model2", model2_pipeline)`<br>`parent.add_child("Model3", model3_pipeline)`                                   | [Pattern 1](#1-simple-branching-pattern)       |
+| **Merge Pattern**                   | Combined features from multiple nodes | `branch = ComposablePipeline(pipeline)`<br>`merged = branch.merge(`<br>`    func=combine_features,`<br>`    outputs="combined_all_features")`                                                                                          | [Pattern 2](#2-merge-pattern)                  |
+| **Nested Tree / Cartesian Product** | Hyperparameter tuning                 | `for fe_name, fe_pipeline in fe_approaches.items():`<br>`    fe_branch = root.add_child(fe_name, fe_pipeline)`<br>`    for model_name, model_pipeline in models.items():`<br>`        fe_branch.add_child(model_name, model_pipeline)` | [Pattern 3](#3-nested-tree--cartesian-product) |
+
+---
+
 ## 1. Simple Branching Pattern
 
 One parent pipeline branches into multiple child pipelines with automatic connections.
@@ -85,15 +96,6 @@ graph TD
     style N fill:#17a2b8,color:#ffffff
 ```
 
----
-
-## Pattern Reference Table
-
-| Pattern                             | Description                                                         | Code Example                                                                                                                                                                                                                           | Diagram                                        |
-| ----------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| **Simple Branching**                | One parent branches to multiple children with automatic connections | `parent = ComposablePipeline(data_prep_pipeline)`<br>`parent.add_child("Model1", model1_pipeline)`<br>`parent.add_child("Model2", model2_pipeline)`<br>`parent.add_child("Model3", model3_pipeline)`                                   | [Pattern 1](#1-simple-branching-pattern)       |
-| **Merge Pattern**                   | Multiple separate pipelines converge using merge functionality      | `branch = ComposablePipeline(pipeline)`<br>`merged = branch.merge(`<br>`    func=combine_features,`<br>`    outputs="combined_all_features")`                                                                                          | [Pattern 2](#2-merge-pattern)                  |
-| **Nested Tree / Cartesian Product** | Cartesian product: FE approaches × Model approaches                 | `for fe_name, fe_pipeline in fe_approaches.items():`<br>`    fe_branch = root.add_child(fe_name, fe_pipeline)`<br>`    for model_name, model_pipeline in models.items():`<br>`        fe_branch.add_child(model_name, model_pipeline)` | [Pattern 3](#3-nested-tree--cartesian-product) |
 
 ## Key Features
 
